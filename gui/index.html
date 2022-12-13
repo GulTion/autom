@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css">
+    <!-- <script src="./react-dom.production.min.js" crossorigin></script>
+    <script src="./react.production.min.js" crossorigin></script>
+    <script src="./babel.min.js"></script> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="mydiv"></div>
+    <script type="text/babel">
+function File(){
+
+    const [file, setFile] = React.useState([])
+    const [select, setSelect] = React.useState(-1);
+    const [isPlay, setPlay] = React.useState(false);
+
+ 
+    
+    const onSelect = (i)=>{
+        return async ()=> {setSelect(i);
+            if(isPlay){
+            await window.pywebview.api.play_stop();
+            setPlay(!isPlay)
+
+        }
+        }
+    }
+
+    const handlePlay =async ()=>{
+
+        if(isPlay){
+            await window.pywebview.api.play_stop()
+
+        }else{
+            await window.pywebview.api.play(file[select].name)
+
+
+        }
+        setPlay(!isPlay)
+
+    }
+
+    return <div className="m-2">
+        <div class="btn-group fileHead" role="group" aria-label="Button group with nested dropdown">
+
+  <button type="button" class="btn btn-success" onClick={handlePlay} disabled={select<0}>{!isPlay?"Play":"Stop"}</button>
+  <button type="button" class="btn btn-danger" disabled={select<0} onClick={async ()=>{
+    setFile(await window.pywebview.api.removeFile(file[select].name))
+  }}>Delete</button>
+  <button type="button" class="btn btn-danger" onClick={async ()=>{
+    setFile(await window.pywebview.api.getFiles())
+
+  }}>Refresh</button>
+
+
+</div>
+<hr/>
+        
+            <div class="list-group fileBody">
+{file.map((e,i)=>{
+    return <button type="button" onClick={onSelect(i)} class={`list-group-item list-group-item-action ${i===select?"active":""}`}>
+    {e.name}
+  </button>
+}) }
+</div>
+            </div>
+        
+  
+}
+        
+function Record() {
+    const [state, setState] = React.useState({
+        type:"init"
+    })
+
+    const handleState = async (e)=>{
+        setState({type:e.target.id})
+
+        switch(state.type){
+        case "init":
+           return await window.pywebview.api.record()
+        
+        case "record":
+            return await window.pywebview.api.stop()
+        
+        case "save":
+            let name = document.getElementById("recordName").value
+
+            return await window.pywebview.api.rename(name)
+
+          
+
+
+        
+    }
+    }
+
+    switch(state.type){
+        case "init":
+           return <button onClick={handleState} id="record" className="btn btn-danger">Record</button>
+        
+        case "record":
+            return <button onClick={handleState} id="save" className="btn btn-primary">STOP</button>
+        
+        case "save":
+            return <div class="input-group mb-3">
+  <input type="text" id="recordName" class="form-control" placeholder="Enter File Name" aria-label="Enter File Name" aria-describedby="basic-addon2"/>
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="button" id="init" onClick={handleState}>Save</button>
+  </div>
+</div>
+
+
+        
+    }
+
+}
+
+    </script>
+
+
+    <script type="text/babel">
+
+      function Body() {
+        return <div className="container-fluid">
+            <div className="m-3">
+                <Record/>
+
+                </div>
+                <hr />
+                <File />
+            </div>
+      }
+
+      ReactDOM.render(<Body />, document.getElementById('mydiv'))
+    </script>
+
+</body>
+
+<style>
+
+</style>
+</html>

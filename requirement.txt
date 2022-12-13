@@ -1,0 +1,5 @@
+pynput==1.7.6
+pywebview==3.7.2
+tinydb==4.7.0
+PyAutoGUI==0.9.53
+
