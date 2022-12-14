@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-    <div id="mydiv"></div>
+    <div id="mydiv">Loading...</div>
     <script type="text/babel">
 function File(){
 
@@ -36,6 +36,7 @@ function File(){
     }
 
     const handlePlay =async ()=>{
+        setPlay(!isPlay)
 
         if(isPlay){
             await window.pywebview.api.play_stop()
@@ -45,9 +46,12 @@ function File(){
 
 
         }
-        setPlay(!isPlay)
 
     }
+
+    React.useEffect(()=>{
+        window.handlePlay =()=> setPlay(e=>!e)
+    },[])
 
     return <div className="m-2">
         <div class="btn-group fileHead" role="group" aria-label="Button group with nested dropdown">
@@ -94,15 +98,14 @@ function Record() {
         
         case "save":
             let name = document.getElementById("recordName").value
-
             return await window.pywebview.api.rename(name)
-
-          
-
 
         
     }
     }
+    React.useEffect(()=>{
+        window.handleState =(id)=> setState({type:id});
+    },[])
 
     switch(state.type){
         case "init":
@@ -138,6 +141,7 @@ function Record() {
                 </div>
                 <hr />
                 <File />
+                <mark>By Gulshan & Himanshu Tripathi</mark>
             </div>
       }
 
@@ -147,6 +151,10 @@ function Record() {
 </body>
 
 <style>
+    body {
+
+  /* background-color: rgb(46, 46, 46); */
+}
 
 </style>
 </html>

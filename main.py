@@ -25,8 +25,9 @@ def getTime():
 
 class Autom:
     
-    def __init__(self):
+    def __init__(self, wrapper):
         self.recordName = getTime()
+        self.wrapper = wrapper
 
 
     def start(self):
@@ -52,6 +53,7 @@ class Autom:
     
     def stop(self):
         print("Record Stop")
+        self.wrapper.onAutoStop()
         self.db.storage.close()
         self.keyboard_listener.stop()
         self.mouse_listener.stop()
@@ -123,7 +125,8 @@ class Autom:
 
 class Play:
     
-    def __init__(self, name):
+    def __init__(self, name, wrapper):
+        self.wrapper = wrapper
         self.name = name
         self.db = TinyDB(f"./files/saved/{name}")
         self.dball = self.db.all()
@@ -143,9 +146,9 @@ class Play:
             return False
 
         self.isPlay = True
-        preTime = self.dball[1]["t"]
+        preTime = self.dball[0]["t"]
 
-        for i in self.dball[1:]:
+        for i in self.dball[0:]:
             if not self.isPlay:
                
                 break
@@ -175,20 +178,27 @@ class Play:
                 self.mice.position =(i['x'], i['y'])
             
             elif c=='click':
-                # self.mice.press()
+             
                 if i['b'][0]==4:
                     self.mice.press(Button.left)
+                    print("click Left")
                 
                 if i['b'][0]==16:
                     self.mice.press(Button.right)
+                    print("click Right")
+
 
             elif c=='release':
                 # self.mice.press()
                 if i['b'][0]==4:
                     self.mice.release(Button.left)
+                    print("Relase Left")
+
                 
                 if i['b'][0]==16:
                     self.mice.release(Button.right)
+                    print("Release right")
+
             
 
             if c=='wait':
@@ -204,6 +214,7 @@ class Play:
                 preTime = i['t']
 
         self.stop()
+        self.wrapper.handlePlay()
 
 
 
@@ -219,14 +230,15 @@ class Api:
  
     
 
-    def __init__(self):
+    def __init__(self, wrapper):
         self.cancel_heavy_stuff_flag = False
         self.automPlay=None
         self.autom=None
+        self.wrapper = wrapper
 
     def record(self):
         
-        self.autom = Autom()
+        self.autom = Autom(self.wrapper)
         self.autom.start()
         self.automName = self.autom.recordName
     
@@ -239,7 +251,7 @@ class Api:
 
     def play(self,name):
         print(name)
-        self.automPlay = Play(name)
+        self.automPlay = Play(name, self.wrapper)
         
         self.automPlay.play()
 
@@ -251,6 +263,7 @@ class Api:
         return self.getFiles()
 
     def play_stop(self):
+     
         self.automPlay.stop()
 
 
@@ -259,10 +272,25 @@ class Api:
         raise Exception('This is a Python exception')
 
 
+class AutomWrapper:
+    def __init__(self):
+        self.api = Api(self)
+        with open("./gui/index.html") as gui_index_file:
+            self.window = webview.create_window('AUTOM v1',"./gui/index.html", js_api=self.api,width=320, height=480, resizable=False)
+            webview.start(debug=True)
 
-if __name__ == '__main__':
-    api = Api()
-    with open("./gui/index.html") as gui_index_file:
-        # window = webview.create_window('AUTOM', html=gui_index_file.read(), js_api=api,width=320, height=480, resizable=False)
-        window = webview.create_window('AUTOM',"./gui/index.html", js_api=api,width=320, height=480, resizable=False)
-        webview.start(debug=True)
+    def onAutoStop(self):
+        self.window.evaluate_js("window.handleState('save')")
+
+    def handlePlay(self):
+        self.window.evaluate_js("window.handlePlay()")
+
+
+
+a = AutomWrapper()
+# if __name__ == '__main__':
+#     api = Api()
+#     with open("./gui/index.html") as gui_index_file:
+#         # window = webview.create_window('AUTOM', html=gui_index_file.read(), js_api=api,width=320, height=480, resizable=False)
+#         window = webview.create_window('AUTOM',"./gui/index.html", js_api=api,width=320, height=480, resizable=False)
+#         webview.start(debug=True)
